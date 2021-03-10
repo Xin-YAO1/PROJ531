@@ -1,0 +1,247 @@
+#python-chess import 
+#https://github.com/niklasf/python-chess
+import chess
+
+#used to access Polyglot book
+import chess.polyglot
+
+#set the initial position
+board = chess.Board()
+print(board)
+
+#mouvement possible
+possibilite=board.legal_moves
+
+def alphabeta(depth,alpha,beta,board,player):
+    '''on renvoie la valeur du coup en prenant en compte le choix de l'adversaire
+    depth est le nombre de coup à l'avance que l'on veut prévoir
+    alpha est la valeur min des coups possibles pour le joueur
+    beta est la valeur max des coups possibles pour le joueur
+    board est la situation actuelle du jeu
+    player est un booléen qui indique vrai si c'est au tour joueur qui cherche quel coup joué 
+    et faux si c'est au coup de l'adversaire'''
+    possiblesmoves=board.legal_moves
+    listMoves = []
+    for move in possiblesmoves:
+        listMoves.append(move)  #création de la liste des mouvements
+    if depth==0:
+        #si on arrive au bout des depth coups on évalue le tableau
+        return evalb(board)
+    else :
+        if player:
+            #si c'est au tour du joueur on evalue chaque mouvement en appelant alphabeta pour les coups suivant
+            for x in listMoves:
+                move=chess.Move.from_uci(str(x))
+                board.push(move)
+                value=alphabeta(depth-1,alpha,beta,board,not(player))
+                board.pop()
+                if value>=beta:
+                    #si la valeur obtenu est plus grande que beta on renvoie beta 
+                    #car on ne veut pas dépasser la valeur max du beta par rapport à l'autre joueur qui nous empechera de l'obtenir
+                    return beta
+                if value>alpha:
+                    #si la valeur obtenue est plus grande que alpha on donne à alpha la valeur de value 
+                    #car on veut augmenter autant que possiblela limite inférieur de la valeur des coups
+                    alpha=value
+            return alpha
+        else:
+            #si c'est au tour de l'adversaire on evalue chaque mouvement en appelant alphabeta pour les coups suivant
+            for x in listMoves:
+                move=chess.Move.from_uci(str(x))
+                board.push(move)
+                value=alphabeta(depth-1,alpha,beta,board,not(player))
+                board.pop()
+                if value<=alpha:
+                    #si la valeur obtenu est plus petite que alpha on renvoie alpha
+                    #car on ne veut pas que le coup soit d'une valeur inférieur à la limite alpha, puisque le joueur va la contrer
+                    return alpha
+                if value<beta:
+                    #si la valeur obtenue est inférieure à beta on donne à beta la valeur de value 
+                    #car l'adversaire va vouloir au plus contrer le joueur donc la limite max de meilleur coup beta diminue
+                    beta=value
+            return beta
+
+def choix_meilleur_coup_ab(board,depth):
+    '''Renvoie la liste des meilleurs mouvements à faire selon l'algorithme alphabeta
+    board est le tableau actuel, depth est la nombre de coup à l'avance que l'on veut prévoir'''
+    possiblesmoves=board.legal_moves
+    listMoves = []
+    for move in possiblesmoves:
+        listMoves.append([move])  
+        #création de la liste des mouvements sous forme de sous liste 
+        #pour pouvoir leur attribuer une valeur par la suite
+    for i in range (len(listMoves)):
+        #pour tous les mouvements possibles on effectue chacun leur tour les mouvements possibles
+        move=chess.Move.from_uci(str(listMoves[i][0]))
+        board.push(move)
+        listMoves[i].append(alphabeta(depth,-99999,99999,board,True))
+        #on attribue à chaque mouvement sa valeur selon l'algorithme alphabeta pour depth coups à l'avance
+        board.pop()
+        #on retire le mouvement effectuer pour revenir au tableau initial
+    best=listMoves[0][1]  
+    for i in range(1,len(listMoves)):
+        #best est la valeur d'évaluation maximale des mouvements possibles
+        best=max(listMoves[i][1],best)
+    bestmoves=[]
+    for i in range(len(listMoves)):
+        #bestmove est la liste des mouvements qui ont leur valeur associé égale à best, ce sont donc les meilleurs mouvements à jouer
+        if listMoves[i][1]==best:
+            bestmoves.append(listMoves[i][0]) 
+    print(bestmoves)
+
+P=[[0,  0,  0,  0,  0,  0,  0,  0],
+    [50, 50, 50, 50, 50, 50, 50, 50],
+    [10, 10, 20, 30, 30, 20, 10, 10],
+    [5,  5, 10, 25, 25, 10,  5,  5],
+    [0,  0,  0, 20, 20,  0,  0,  0],
+    [5, -5,-10,  0,  0,-10, -5,  5],
+    [5, 10, 10,-20,-20, 10, 10,  5],
+    [0,  0,  0,  0,  0,  0,  0,  0]]
+
+p=[[0,  0,  0,  0,  0,  0,  0,  0],
+   [5, 10, 10,-20,-20, 10, 10,  5],
+   [5, -5,-10,  0,  0,-10, -5,  5],
+   [0,  0,  0, 20, 20,  0,  0,  0],
+   [5,  5, 10, 25, 25, 10,  5,  5],
+   [10, 10, 20, 30, 30, 20, 10, 10],
+   [50, 50, 50, 50, 50, 50, 50, 50],
+   [0,  0,  0,  0,  0,  0,  0,  0]]
+
+N=[[-50,-40,-30,-30,-30,-30,-40,-50],
+    [-40,-20,  0,  0,  0,  0,-20,-40],
+    [-30,  0, 10, 15, 15, 10,  0,-30],
+    [-30,  5, 15, 20, 20, 15,  5,-30],
+    [-30,  0, 15, 20, 20, 15,  0,-30],
+    [-30,  5, 10, 15, 15, 10,  5,-30],
+    [-40,-20,  0,  5,  5,  0,-20,-40],
+    [-50,-40,-30,-30,-30,-30,-40,-50]]
+
+n=[[-50,-40,-30,-30,-30,-30,-40,-50],
+   [-40,-20,  0,  5,  5,  0,-20,-40],
+   [-30,  5, 10, 15, 15, 10,  5,-30],
+   [-30,  0, 15, 20, 20, 15,  0,-30],
+   [-30,  5, 15, 20, 20, 15,  5,-30],
+   [-30,  0, 10, 15, 15, 10,  0,-30],
+   [-40,-20,  0,  0,  0,  0,-20,-40],
+   [-50,-40,-30,-30,-30,-30,-40,-50]]
+
+B=[[-20,-10,-10,-10,-10,-10,-10,-20],
+    [-10,  0,  0,  0,  0,  0,  0,-10],
+    [-10,  0,  5, 10, 10,  5,  0,-10],
+    [-10,  5,  5, 10, 10,  5,  5,-10],
+    [-10,  0, 10, 10, 10, 10,  0,-10],
+    [-10, 10, 10, 10, 10, 10, 10,-10],
+    [-10,  5,  0,  0,  0,  0,  5,-10],
+    [-20,-10,-10,-10,-10,-10,-10,-20]]
+
+b=[[-20,-10,-10,-10,-10,-10,-10,-20],
+    [-10,  5,  0,  0,  0,  0,  5,-10],
+    [-10,  10, 10, 10, 10, 10, 10,-10],
+    [-10,  0, 10, 10, 10, 10,  0,-10],
+    [-10,  5,  5, 10, 10,  5,  5,-10],
+    [-10, 0,  5, 10, 10,  5,  0,-10],
+    [-10,  0,  0,  0,  0,  0,  0,-10],
+    [-20,-10,-10,-10,-10,-10,-10,-20]]
+
+R=[[0,  0,  0,  0,  0,  0,  0,  0],
+    [5, 10, 10, 10, 10, 10, 10,  5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [0,  0,  0,  5,  5,  0,  0,  0]]
+
+r=[[0,  0,  0,  5,  5,  0,  0,  0],
+    [-5, 0, 0, 0, 0, 0, 0,  -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [-5,  0,  0,  0,  0,  0,  0, -5],
+    [5,  10,  10,  10,  10,  10,  10, 5],
+    [0,  0,  0,  0,  0,  0,  0,  0]]
+
+Q=[[-20,-10,-10, -5, -5,-10,-10,-20],
+   [-10, 0, 0, 0, 0, 0, 0,-10],
+   [-10, 0, 5, 5, 5, 5, 0,-10],
+   [-5, 0, 5, 5, 5, 5, 0, -5],
+   [0, 0, 5, 5, 5, 5, 0, -5],
+   [-10, 5, 5, 5, 5, 5, 0,-10],
+   [-10, 0, 5, 0, 0, 0, 0,-10],
+   [-20,-10,-10, -5, -5,-10,-10,-20]]
+
+q=[[-20,-10,-10, -5, -5,-10,-10,-20],
+   [-10, 0, 0, 0, 0, 5, 0,-10],
+   [-10, 0, 5, 5, 5, 5, 5,-10],
+   [-5, 0, 5, 5, 5, 5, 0, 0],
+   [-5, 0, 5, 5, 5, 5, 0, -5],
+   [-10, 0, 5, 5, 5, 5, 0,-10],
+   [-10, 0, 0, 0, 0, 0, 0,-10],
+   [-20,-10,-10, -5, -5,-10,-10,-20]]
+
+K=[[-30,-40,-40,-50,-50,-40,-40,-30],
+   [-30,-40,-40,-50,-50,-40,-40,-30],
+   [-30,-40,-40,-50,-50,-40,-40,-30],
+   [-30,-40,-40,-50,-50,-40,-40,-30],
+   [-20,-30,-30,-40,-40,-30,-30,-20],
+   [-10,-20,-20,-20,-20,-20,-20,-10],
+   [20, 20, 0, 0, 0, 0, 20, 20],
+   [20, 30, 10, 0, 0, 10, 30, 20]]
+
+k=[[20, 30, 10, 0, 0, 10, 30, 20],
+   [20, 20, 0, 0, 0, 0, 20, 20],
+   [-10,-20,-20,-20,-20,-20,-20,-10],
+   [-20,-30,-30,-40,-40,-30,-30,-20],
+   [-30,-40,-40,-50,-50,-40,-40,-30],
+   [-30,-40,-40,-50,-50,-40,-40,-30],
+   [-30,-40,-40,-50,-50,-40,-40,-30],
+   [-30,-40,-40,-50,-50,-40,-40,-30]]
+        
+def evalb(board):
+    '''renvoie la valeur d'un plateau en fonction du nombre de piece restante sur le plateau '''
+    evalb=0
+    for pos in range(64):
+        if board.piece_at(pos)!=None:
+            if board.piece_at(pos).color: 
+                evalb+=getPieceValue(str(board.piece_at(pos)),pos)
+            else:
+                evalb-=getPieceValue(str(board.piece_at(pos)),pos)
+    return evalb
+    
+       
+def getPieceValue(piece,pos):
+        '''renvoie la valeur de la piece'''
+        if(piece == None):
+            return 0
+        value = 0
+        i=0
+        while pos>7:
+            pos-=8
+            i+=1
+        i=7-i
+        j=pos
+        if piece == "P" :
+            value = 100 + P[i][j]
+        if piece == "p" :
+            value = 100 + p[i][j]
+        if piece == "N" :
+            value = 320 + N[i][j]
+        if piece == "n" :
+            value = 320 + n[i][j]
+        if piece == "B" :
+            value = 330 + B[i][j]
+        if piece == "b" :
+            value = 330 + b[i][j]
+        if piece == "R" :
+            value = 500 + R[i][j]
+        if piece == "r" :
+            value = 500 + r[i][j]
+        if piece == "Q" :
+            value = 900 + Q[i][j]
+        if piece == "q" :
+            value = 900 + q[i][j]
+        if piece == 'K' :
+            value = 20000 + K[i][j]
+        if piece == 'k' :
+            value = 20000 + k[i][j]
+        return value
