@@ -1,1 +1,31 @@
-
+Documentation Polychess
+Bibliothèque Chess :
+chess.board() : méthode qui va initialiser le tableau dans la position initiale
+chess.board(fen) : méthode qui prend en argument la chaîne de caractère
+permettant de décrire la position des pièces sur le plateau (format FEN) et qui
+permet de mettre le plateau dans la position demandé.
+chess.color() : méthode qui renvoie True si la couleur est blanche, False si elle est
+noir. (Pour obtenir le résultat opposé on peut utiliser not color)
+board.legal_moves : méthode qui renvoie la liste des coups possible pour un
+plateau board donné.
+board.fen() : méthode qui renvoie le format FEN décrivant le plateau board
+board.is_game_over() : méthode qui évalue si une condition de fin de la partie a
+été remplie pour un plateau board donné.
+board.result() : méthode qui renvoie le résultat de la partie
+board.push(mvmt) : méthode qui permet de déplacer une pièce grâce à la notation
+algébrique abrégée (mvmt).
+board.pop() : méthode qui permet de supprimer le dernier coup joué.
+board.piece_at(pos) : permet d’évaluer si une pièce est présente à la position
+(pos).
+Module chess.svg :
+- retourne des images SVG
+chess.svg.board (board: Optional[chess.BaseBoard] = None, lastmove:
+Optional[chess.Move] = None) : méthode qui renvoie le plateau du jeu en tant
+qu’image SVG. L’argument board permet d’avoir le plateau et lastmove de mettre en
+évidence un mouvement.
+La méthode display permet d’afficher l’image.
+Module chess.pgn :
+chess.pgn.game(): méthode qui permet de mettre la partie sous format pgn qu’on
+pourra utiliser pour l’enregistrement sous format texte.
+chess.pgn.File Exporter(): méthode qui permet d’exporter le game sous forme
+texte
